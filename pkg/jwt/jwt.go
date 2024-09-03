@@ -2,12 +2,13 @@ package jwt
 
 import (
 	"encoding/json"
-	"shortbin/pkg/logger"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
+
 	"shortbin/pkg/config"
+	"shortbin/pkg/logger"
 )
 
 const (

@@ -2,9 +2,9 @@ package validation
 
 import (
 	"fmt"
-	"github.com/go-playground/validator/v10"
 
 	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
 )
 
 type validation struct {

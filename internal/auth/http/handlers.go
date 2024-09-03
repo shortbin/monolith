@@ -3,13 +3,13 @@ package http
 import (
 	"errors"
 	"net/http"
-	"shortbin/internal/auth/dto"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"shortbin/pkg/logger"
 
+	"shortbin/internal/auth/dto"
 	"shortbin/internal/auth/service"
+	"shortbin/pkg/logger"
 	"shortbin/pkg/response"
 	"shortbin/pkg/utils"
 )

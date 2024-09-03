@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"shortbin/internal/auth/repository"
 	"shortbin/internal/auth/service"
 	"shortbin/pkg/middleware"

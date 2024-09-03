@@ -8,8 +8,9 @@ import (
 	"shortbin/pkg/utils"
 
 	"golang.org/x/crypto/bcrypt"
-	dto "shortbin/internal/auth/dto"
-	repository "shortbin/internal/auth/repository"
+
+	"shortbin/internal/auth/dto"
+	"shortbin/internal/auth/repository"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/validation"
 )

@@ -1,11 +1,12 @@
 package config
 
 import (
-	"github.com/caarlos0/env"
-	"github.com/joho/godotenv"
 	"log"
 	"path/filepath"
 	"runtime"
+
+	"github.com/caarlos0/env"
+	"github.com/joho/godotenv"
 )
 
 const ProductionEnv = "production"

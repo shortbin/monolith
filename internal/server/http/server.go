@@ -6,11 +6,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"net/http"
-	authHttp "shortbin/internal/auth/http"
+
+	"shortbin/pkg/config"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/validation"
 
-	"shortbin/pkg/config"
+	authHttp "shortbin/internal/auth/http"
 )
 
 type Server struct {
