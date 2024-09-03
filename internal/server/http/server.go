@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"net/http"
+	authHttp "shortbin/internal/auth/http"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/validation"
 
@@ -60,5 +61,7 @@ func (s Server) GetEngine() *gin.Engine {
 }
 
 func (s Server) MapRoutes() error {
+	v1 := s.engine.Group("/api/v1")
+	authHttp.Routes(v1, s.db, s.validator)
 	return nil
 }
