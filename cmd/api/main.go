@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg := config.LoadConfig()
+	cfg := config.LoadConfig("config.yaml")
 	logger.Initialize(cfg.Environment)
 
 	db, err := database.NewDatabase(cfg.DataSourceName)

@@ -1,38 +1,31 @@
 package config
 
 import (
+	"github.com/spf13/viper"
 	"log"
-	"path/filepath"
-	"runtime"
-
-	"github.com/caarlos0/env"
-	"github.com/joho/godotenv"
 )
 
 const ProductionEnv = "production"
 
 type Config struct {
-	Environment    string `env:"environment"`
-	HttpPort       int    `env:"http_port"`
-	AuthSecret     string `env:"auth_secret"`
-	DataSourceName string `env:"data_source_name"`
+	Environment    string `mapstructure:"environment"`
+	HttpPort       int    `mapstructure:"http_port"`
+	AuthSecret     string `mapstructure:"auth_secret"`
+	DataSourceName string `mapstructure:"data_source_name"`
 }
 
-var (
-	cfg Config
-)
+var cfg Config
 
-func LoadConfig() *Config {
-	_, filename, _, _ := runtime.Caller(0)
-	currentDir := filepath.Dir(filename)
+func LoadConfig(configPath string) *Config {
+	viper.SetConfigFile(configPath)
+	viper.SetConfigType("yaml")
 
-	err := godotenv.Load(filepath.Join(currentDir, "config.yaml"))
-	if err != nil {
-		log.Printf("Error on load configuration file, error: %v", err)
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatal("Error reading config file, ", err)
 	}
 
-	if err := env.Parse(&cfg); err != nil {
-		log.Fatalf("Error on parsing configuration file, error: %v", err)
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatal("Unable to decode into struct, ", err)
 	}
 
 	return &cfg

@@ -1,0 +1,5 @@
+environment: pre_production
+http_port: 8888
+auth_secret: sahdfbadfhblsbfasilb
+
+data_source_name: user=myuser password=mypassword host=localhost port=5432 dbname=shortbin pool_max_conns=10 pool_min_conns=5
