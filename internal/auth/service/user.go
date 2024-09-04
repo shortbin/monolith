@@ -20,7 +20,7 @@ type IUserService interface {
 	Login(ctx context.Context, req *dto.LoginReq) (*model.User, string, string, error)
 	Register(ctx context.Context, req *dto.RegisterReq) (*model.User, error)
 	GetUserByID(ctx context.Context, id string) (*model.User, error)
-	RefreshToken(ctx context.Context, userID string) (string, string, error)
+	RefreshToken(ctx context.Context, userID string) (string, error)
 	ChangePassword(ctx context.Context, id string, req *dto.ChangePasswordReq) error
 }
 
@@ -90,11 +90,11 @@ func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, 
 	return user, nil
 }
 
-func (s *UserService) RefreshToken(ctx context.Context, userID string) (string, string, error) {
+func (s *UserService) RefreshToken(ctx context.Context, userID string) (string, error) {
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		logger.Errorf("RefreshToken.GetUserByID fail, id: %s, error: %s", userID, err)
-		return "", "", err
+		return "", err
 	}
 
 	tokenData := map[string]interface{}{
@@ -102,8 +102,7 @@ func (s *UserService) RefreshToken(ctx context.Context, userID string) (string, 
 		"email": user.Email,
 	}
 	accessToken := jwt.GenerateAccessToken(tokenData)
-	refreshToken := jwt.GenerateRefreshToken(tokenData)
-	return accessToken, refreshToken, nil
+	return accessToken, nil
 }
 
 func (s *UserService) ChangePassword(ctx context.Context, id string, req *dto.ChangePasswordReq) error {
@@ -120,7 +119,12 @@ func (s *UserService) ChangePassword(ctx context.Context, id string, req *dto.Ch
 		return errors.New("wrong password")
 	}
 
-	user.Password = utils.HashAndSalt([]byte(req.NewPassword))
+	if req.Password == req.NewPassword {
+		return errors.New("new password cannot be the same as the old password")
+	} else {
+		user.Password = utils.HashAndSalt([]byte(req.NewPassword))
+	}
+
 	err = s.repo.Update(ctx, user)
 	if err != nil {
 		logger.Errorf("ChangePassword.Update fail, id: %s, error: %s", id, err)

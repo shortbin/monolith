@@ -120,17 +120,14 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, err := h.service.RefreshToken(c, userID)
+	accessToken, err := h.service.RefreshToken(c, userID)
 	if err != nil {
 		logger.Error("Failed to refresh token", err)
 		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
 		return
 	}
 
-	res := dto.RefreshTokenRes{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
+	res := dto.RefreshTokenRes{AccessToken: accessToken}
 	response.JSON(c, http.StatusOK, res)
 }
 
@@ -157,5 +154,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
 		return
 	}
-	response.JSON(c, http.StatusOK, nil)
+
+	res := map[string]string{"Message": "Password changed successfully"}
+	response.JSON(c, http.StatusOK, res)
 }
