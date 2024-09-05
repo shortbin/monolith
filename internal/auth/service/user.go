@@ -49,7 +49,7 @@ func (s *UserService) Login(ctx context.Context, req *dto.LoginReq) (*model.User
 		return nil, "", "", err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(userDetails.Password), []byte(req.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(userDetails.HashedPassword), []byte(req.Password)); err != nil {
 		return nil, "", "", errors.New("wrong password")
 	}
 
@@ -71,7 +71,7 @@ func (s *UserService) Register(ctx context.Context, req *dto.RegisterReq) (*mode
 	utils.Copy(&user, &req)
 	// populate auth model with values
 	user.PopulateValues()
-	user.Password = utils.HashAndSalt([]byte(user.Password))
+	user.HashedPassword = utils.HashAndSalt([]byte(user.HashedPassword))
 	err := s.repo.Create(ctx, &user)
 	if err != nil {
 		logger.Errorf("Register.Create fail, email: %s, error: %s", req.Email, err)
@@ -115,14 +115,14 @@ func (s *UserService) ChangePassword(ctx context.Context, id string, req *dto.Ch
 		return err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(req.Password)); err != nil {
 		return errors.New("wrong password")
 	}
 
 	if req.Password == req.NewPassword {
 		return errors.New("new password cannot be the same as the old password")
 	} else {
-		user.Password = utils.HashAndSalt([]byte(req.NewPassword))
+		user.HashedPassword = utils.HashAndSalt([]byte(req.NewPassword))
 	}
 
 	err = s.repo.Update(ctx, user)
