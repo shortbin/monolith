@@ -31,7 +31,7 @@ func NewRetrieveHandler(service service.IRetrieveService) *RetrieveHandler {
 func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 	shortId := c.Param("short_id")
 
-	longUrl, err := h.service.GetLongUrlByShortId(c, shortId)
+	longUrl, err := h.service.Retrieve(c, shortId)
 	if err != nil {
 		response.Error(c, http.StatusNotFound, err, "not found")
 		return
