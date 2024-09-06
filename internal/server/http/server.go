@@ -12,6 +12,7 @@ import (
 	"shortbin/pkg/validation"
 
 	authHttp "shortbin/internal/auth/http"
+	retrieveHttp "shortbin/internal/retrieve/http"
 )
 
 type Server struct {
@@ -63,6 +64,9 @@ func (s Server) GetEngine() *gin.Engine {
 
 func (s Server) MapRoutes() error {
 	v1 := s.engine.Group("/api/v1")
+
 	authHttp.Routes(v1, s.db, s.validator)
+	retrieveHttp.Routes(s.engine, s.db)
+
 	return nil
 }

@@ -12,6 +12,7 @@ type Config struct {
 	HttpPort       int    `mapstructure:"http_port"`
 	AuthSecret     string `mapstructure:"auth_secret"`
 	DataSourceName string `mapstructure:"data_source_name"`
+	ShortIdLength  int    `mapstructure:"short_id_length"`
 }
 
 var cfg Config
