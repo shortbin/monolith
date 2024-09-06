@@ -7,12 +7,11 @@ import (
 )
 
 func Error(c *gin.Context, status int, err error, message string) {
-	cfg := config.GetConfig()
 	errorRes := map[string]interface{}{
 		"message": message,
 	}
 
-	if cfg.Environment != config.ProductionEnv {
+	if config.GetConfig().Environment != config.ProductionEnv {
 		errorRes["debug"] = err.Error()
 	}
 

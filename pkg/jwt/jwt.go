@@ -19,14 +19,13 @@ const (
 )
 
 func GenerateAccessToken(payload map[string]interface{}) string {
-	cfg := config.GetConfig()
 	payload["type"] = AccessTokenType
 	tokenContent := jwt.MapClaims{
 		"payload": payload,
 		"exp":     time.Now().Add(time.Second * AccessTokenExpiredTime).Unix(),
 	}
 	jwtToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tokenContent)
-	token, err := jwtToken.SignedString([]byte(cfg.AuthSecret))
+	token, err := jwtToken.SignedString([]byte(config.GetConfig().AuthSecret))
 	if err != nil {
 		logger.Error("Failed to generate access token: ", err)
 		return ""
@@ -36,14 +35,13 @@ func GenerateAccessToken(payload map[string]interface{}) string {
 }
 
 func GenerateRefreshToken(payload map[string]interface{}) string {
-	cfg := config.GetConfig()
 	payload["type"] = RefreshTokenType
 	tokenContent := jwt.MapClaims{
 		"payload": payload,
 		"exp":     time.Now().Add(time.Second * RefreshTokenExpiredTime).Unix(),
 	}
 	jwtToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tokenContent)
-	token, err := jwtToken.SignedString([]byte(cfg.AuthSecret))
+	token, err := jwtToken.SignedString([]byte(config.GetConfig().AuthSecret))
 	if err != nil {
 		logger.Error("Failed to generate refresh token: ", err)
 		return ""
@@ -53,11 +51,10 @@ func GenerateRefreshToken(payload map[string]interface{}) string {
 }
 
 func ValidateToken(jwtToken string) (map[string]interface{}, error) {
-	cfg := config.GetConfig()
 	cleanJWT := strings.Replace(jwtToken, "Bearer ", "", 1)
 	tokenData := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(cleanJWT, tokenData, func(token *jwt.Token) (interface{}, error) {
-		return []byte(cfg.AuthSecret), nil
+		return []byte(config.GetConfig().AuthSecret), nil
 	})
 
 	if err != nil {

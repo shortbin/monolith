@@ -14,8 +14,7 @@ type User struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
-func (user *User) PopulateValues() *User {
+func (user *User) PopulateValues() {
 	user.ID = uuid.New().String()
 	user.CreatedAt = time.Now()
-	return user
 }
