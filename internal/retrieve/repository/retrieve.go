@@ -24,7 +24,7 @@ func NewRetrieveRepository(db *pgxpool.Pool) *RetrieveRepo {
 
 func (r *RetrieveRepo) GetUrlByID(ctx context.Context, id string) (*model.Url, error) {
 
-	query := `SELECT short, long, user_id, created_at, expires_at FROM urls WHERE short=$1`
+	query := `SELECT short_id, long_url, user_id, created_at, expires_at FROM urls WHERE short_id=$1`
 	row := r.db.QueryRow(ctx, query, id)
 
 	var url model.Url
