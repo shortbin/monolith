@@ -19,6 +19,15 @@ func NewRetrieveHandler(service service.IRetrieveService) *RetrieveHandler {
 	}
 }
 
+// Retrieve godoc
+//
+// @Summary Retrieve a long URL by its short ID
+// @Tags urls
+// @Produce json
+// @Param short_id path string true "ShortId ID"
+// @Success 301 {string} string "Redirects to the long URL"
+// @Failure 404 {object} response.ErrorResponse "Not Found"
+// @Router /{short_id} [get]
 func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 	shortId := c.Param("short_id")
 

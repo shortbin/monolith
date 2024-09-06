@@ -26,7 +26,8 @@ func NewRetrieveService(
 
 func (s RetrieveService) GetLongUrlByShortId(ctx context.Context, shortId string) (string, error) {
 	cfg := config.GetConfig()
-	if len(shortId) != cfg.ShortIdLength {
+
+	if length := len(shortId); cfg.ShortIdLength.Min <= length && length <= cfg.ShortIdLength.Max {
 		return "", errors.New("length not in range")
 	}
 
@@ -35,6 +36,6 @@ func (s RetrieveService) GetLongUrlByShortId(ctx context.Context, shortId string
 		return "", err
 	}
 
-	longUrl := url.Long
+	longUrl := url.LongUrl
 	return longUrl, nil
 }

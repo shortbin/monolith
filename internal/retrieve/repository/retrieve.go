@@ -28,7 +28,7 @@ func (r *RetrieveRepo) GetUrlByID(ctx context.Context, id string) (*model.Url, e
 	row := r.db.QueryRow(ctx, query, id)
 
 	var url model.Url
-	if err := row.Scan(&url.Short, &url.Long, &url.UserId, &url.CreatedAt, &url.ExpiresAt); err != nil {
+	if err := row.Scan(&url.ShortId, &url.LongUrl, &url.UserId, &url.CreatedAt, &url.ExpiresAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errors.New("id not found")
 		}
