@@ -10,7 +10,7 @@ import (
 
 //go:generate mockery --name=IRetrieveService
 type IRetrieveService interface {
-	GetLongUrlByShortId(ctx context.Context, shortId string) (string, error)
+	Retrieve(ctx context.Context, shortId string) (string, error)
 }
 
 type RetrieveService struct {
@@ -24,7 +24,7 @@ func NewRetrieveService(
 	}
 }
 
-func (s RetrieveService) GetLongUrlByShortId(ctx context.Context, shortId string) (string, error) {
+func (s RetrieveService) Retrieve(ctx context.Context, shortId string) (string, error) {
 	cfg := config.GetConfig()
 
 	if length := len(shortId); length < cfg.ShortIdLength.Min || cfg.ShortIdLength.Max < length {
