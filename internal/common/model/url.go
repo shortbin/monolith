@@ -18,9 +18,11 @@ type Url struct {
 // PopulateValues populates the values of the url model
 func (url *Url) PopulateValues() {
 	url.CreatedAt = time.Now()
-	url.ExpiresAt = time.Now().AddDate(
-		config.GetConfig().ExpirationInYears,
-		0,
-		0,
-	)
+	if url.ExpiresAt.IsZero() {
+		url.ExpiresAt = time.Now().AddDate(
+			config.GetConfig().ExpirationInYears,
+			0,
+			0,
+		)
+	}
 }
