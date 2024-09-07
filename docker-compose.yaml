@@ -1,0 +1,9 @@
+services:
+  shortbin:
+    image: shortbin/monolith:latest
+    environment:
+      - GIN_MODE=release
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./configs/config_docker.yaml:/config.yaml:ro
