@@ -51,7 +51,7 @@ func (s Server) Run() error {
 	// s.engine.Use(apmgin.Middleware(s.engine))
 
 	// Start http server
-	logger.Info("HTTP server is listening on PORT: ", s.cfg.HttpPort)
+	logger.Info("HTTP server is listening on port ", s.cfg.HttpPort)
 	if err := s.engine.Run(fmt.Sprintf(":%d", s.cfg.HttpPort)); err != nil {
 		log.Fatalf("Running HTTP server: %v", err)
 	}

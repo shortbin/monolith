@@ -65,7 +65,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 func (h *UserHandler) Register(c *gin.Context) {
 	var req dto.RegisterReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
-		logger.Error("Failed to get body", err)
+		logger.Error("Failed to get body ", err)
 		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
 		return
 	}
@@ -122,7 +122,7 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 
 	accessToken, err := h.service.RefreshToken(c, userID)
 	if err != nil {
-		logger.Error("Failed to refresh token", err)
+		logger.Error("Failed to refresh token ", err)
 		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
 		return
 	}
@@ -142,7 +142,7 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	var req dto.ChangePasswordReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
-		logger.Error("Failed to get body", err)
+		logger.Error("Failed to get body ", err)
 		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
 		return
 	}

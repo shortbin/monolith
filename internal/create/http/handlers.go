@@ -25,7 +25,7 @@ func NewUserHandler(service service.ICreateService) *CreateHandler {
 func (h CreateHandler) Create(c *gin.Context) {
 	var req dto.CreateReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
-		logger.Error("Failed to get body", err)
+		logger.Error("Failed to get body ", err)
 		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
 		return
 	}
