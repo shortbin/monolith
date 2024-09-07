@@ -26,7 +26,7 @@ func (h CreateHandler) Create(c *gin.Context) {
 	var req dto.CreateReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
 		logger.Error("Failed to get body ", err)
-		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
+		response.Error(c, http.StatusBadRequest, err, response.InvalidParameters)
 		return
 	}
 
@@ -34,7 +34,7 @@ func (h CreateHandler) Create(c *gin.Context) {
 	url, err := h.service.Create(c, userId, &req)
 	if err != nil {
 		logger.Error(err.Error())
-		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		return
 	}
 

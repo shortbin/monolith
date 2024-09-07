@@ -33,7 +33,11 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 
 	longUrl, err := h.service.Retrieve(c, shortId)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, err, "not found")
+		if err.Error() == response.IdNotFound {
+			response.Error(c, http.StatusNotFound, err, response.IdNotFound)
+		} else {
+			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
+		}
 		return
 	}
 

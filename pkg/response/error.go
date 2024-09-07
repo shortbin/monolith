@@ -6,6 +6,15 @@ import (
 	"shortbin/pkg/config"
 )
 
+const (
+	InvalidParameters  = "invalid parameters"
+	SomethingWentWrong = "something went wrong"
+	Unauthorized       = "unauthorized"
+	IdNotFound         = "id not found"
+	UserAlreadyExists  = "user already exists"
+	EmptyUserId
+)
+
 func Error(c *gin.Context, status int, err error, message string) {
 	errorRes := map[string]interface{}{
 		"message": message,

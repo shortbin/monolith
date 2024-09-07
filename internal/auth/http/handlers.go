@@ -2,10 +2,9 @@ package http
 
 import (
 	"errors"
-	"net/http"
-	"strings"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
+	"net/http"
 
 	"shortbin/internal/auth/dto"
 	"shortbin/internal/auth/service"
@@ -36,14 +35,14 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var req dto.LoginReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
 		logger.Error("Failed to get body ", err)
-		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
+		response.Error(c, http.StatusBadRequest, err, response.InvalidParameters)
 		return
 	}
 
 	user, accessToken, refreshToken, err := h.service.Login(c, &req)
 	if err != nil {
 		logger.Error("Failed to login ", err)
-		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		return
 	}
 
@@ -66,18 +65,20 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var req dto.RegisterReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
 		logger.Error("Failed to get body ", err)
-		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
+		response.Error(c, http.StatusBadRequest, err, response.InvalidParameters)
 		return
 	}
 
 	user, err := h.service.Register(c, &req)
 	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-			response.Error(c, http.StatusConflict, err, "User already exists")
-			return
+		var pgErr *pgconn.PgError
+		// check if error is that user already exists
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			response.Error(c, http.StatusConflict, pgErr, response.UserAlreadyExists)
+		} else {
+			logger.Error(err.Error())
+			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		}
-		logger.Error(err.Error())
-		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
 		return
 	}
 
@@ -97,14 +98,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.GetString("userId")
 	if userID == "" {
-		response.Error(c, http.StatusUnauthorized, errors.New("unauthorized"), "Unauthorized")
+		response.Error(c, http.StatusUnauthorized, errors.New(response.EmptyUserId), response.Unauthorized)
 		return
 	}
 
 	user, err := h.service.GetUserByID(c, userID)
 	if err != nil {
 		logger.Error(err.Error())
-		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		return
 	}
 
@@ -116,14 +117,14 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 func (h *UserHandler) RefreshToken(c *gin.Context) {
 	userID := c.GetString("userId")
 	if userID == "" {
-		response.Error(c, http.StatusUnauthorized, errors.New("unauthorized"), "Unauthorized")
+		response.Error(c, http.StatusUnauthorized, errors.New(response.EmptyUserId), response.Unauthorized)
 		return
 	}
 
 	accessToken, err := h.service.RefreshToken(c, userID)
 	if err != nil {
 		logger.Error("Failed to refresh token ", err)
-		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		return
 	}
 
@@ -143,7 +144,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	var req dto.ChangePasswordReq
 	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
 		logger.Error("Failed to get body ", err)
-		response.Error(c, http.StatusBadRequest, err, "Invalid parameters")
+		response.Error(c, http.StatusBadRequest, err, response.InvalidParameters)
 		return
 	}
 
@@ -151,7 +152,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	err := h.service.ChangePassword(c, userID, &req)
 	if err != nil {
 		logger.Error(err.Error())
-		response.Error(c, http.StatusInternalServerError, err, "Something went wrong")
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		return
 	}
 
