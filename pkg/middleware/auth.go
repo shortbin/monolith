@@ -8,6 +8,16 @@ import (
 	"shortbin/pkg/jwt"
 )
 
+func OptionalJWTAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetHeader("Authorization") != "" {
+			JWTAuth()(c)
+		} else {
+			c.Next()
+		}
+	}
+}
+
 func JWTAuth() gin.HandlerFunc {
 	return JWT(jwt.AccessTokenType)
 }

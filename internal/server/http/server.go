@@ -2,17 +2,18 @@ package http
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	authHttp "shortbin/internal/auth/http"
+	createHttp "shortbin/internal/create/http"
+	retrieveHttp "shortbin/internal/retrieve/http"
 	"shortbin/pkg/config"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/validation"
-
-	authHttp "shortbin/internal/auth/http"
-	retrieveHttp "shortbin/internal/retrieve/http"
 )
 
 type Server struct {
@@ -65,8 +66,9 @@ func (s Server) GetEngine() *gin.Engine {
 func (s Server) MapRoutes() error {
 	v1 := s.engine.Group("/api/v1")
 
-	authHttp.Routes(v1, s.db, s.validator)
 	retrieveHttp.Routes(s.engine, s.db)
+	authHttp.Routes(v1, s.db, s.validator)
+	createHttp.Routes(v1, s.db, s.validator)
 
 	return nil
 }

@@ -5,5 +5,8 @@ auth_secret: sahdfbadfhblsbfasilb
 data_source_name: user=myuser password=mypassword host=localhost port=5432 dbname=shortbin pool_max_conns=10 pool_min_conns=5
 
 short_id_length:
+  default: 7
   max: 15
   min: 7
+
+expiration_in_years: 5
