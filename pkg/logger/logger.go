@@ -13,9 +13,10 @@ var logger Logger
 // Initialize default production is false if not call func
 func Initialize(environment string) {
 	var conf zap.Config
-	conf = NewProductionConfig()
 
-	if environment != ProductionEnvName {
+	if environment == ProductionEnvName {
+		conf = NewProductionConfig()
+	} else {
 		conf = zap.NewDevelopmentConfig()
 	}
 

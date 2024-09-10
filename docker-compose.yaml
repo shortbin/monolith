@@ -3,7 +3,12 @@ services:
     image: shortbin/monolith:latest
     environment:
       - GIN_MODE=release
+      - ELASTIC_APM_SERVER_URL=https://ampere_2:8200
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+      - ELASTIC_APM_SERVICE_NAME=shortbin-monolith
+      - ELASTIC_APM_SECRET_TOKEN=secrettokengoeshere
+      - ELASTIC_APM_ENVIRONMENT=production
     ports:
       - "8888:8888"
     volumes:
-      - ./configs/config_docker.yaml:/config.yaml:ro
+      - ./config_prod.yaml:/config.yaml:ro
