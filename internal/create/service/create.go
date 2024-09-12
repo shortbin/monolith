@@ -55,7 +55,7 @@ func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) 
 
 	err := s.repo.Create(ctx, &url)
 	if err != nil {
-		logger.Errorf("Create.Create failed, long_url: %s, error: %s", url.LongUrl, err)
+		logger.Infof("Create.Create failed, long_url: %s, error: %s", url.LongUrl, err)
 		return nil, err
 	}
 

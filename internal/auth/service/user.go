@@ -50,7 +50,7 @@ func (s *UserService) Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, s
 
 	userDetails, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		logger.Errorf("Login.GetUserByEmail fail, email: %s, error: %s", req.Email, err)
+		logger.Infof("Login.GetUserByEmail fail, email: %s, error: %s", req.Email, err)
 		return nil, "", "", err
 	}
 
@@ -83,16 +83,20 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 	user.HashedPassword = utils.HashAndSalt([]byte(user.HashedPassword))
 	err := s.repo.Create(ctx, &user)
 	if err != nil {
-		logger.Errorf("Register.Create fail, email: %s, error: %s", req.Email, err)
+		logger.Infof("Register.Create fail, email: %s, error: %s", req.Email, err)
 		return nil, err
 	}
 	return &user, nil
 }
 
 func (s *UserService) GetUserByID(ctx *gin.Context, id string) (*model.User, error) {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*UserService.GetUserByID", "service", nil)
+	defer rootSpan.End()
+
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
-		logger.Errorf("GetUserByID fail, id: %s, error: %s", id, err)
+		logger.Infof("GetUserByID fail, id: %s, error: %s", id, err)
 		return nil, err
 	}
 
@@ -106,7 +110,7 @@ func (s *UserService) RefreshToken(ctx *gin.Context, userID string) (string, err
 
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
-		logger.Errorf("RefreshToken.GetUserByID fail, id: %s, error: %s", userID, err)
+		logger.Infof("RefreshToken.GetUserByID fail, id: %s, error: %s", userID, err)
 		return "", err
 	}
 
@@ -129,7 +133,7 @@ func (s *UserService) ChangePassword(ctx *gin.Context, id string, req *dto.Chang
 
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
-		logger.Errorf("ChangePassword.GetUserByID fail, id: %s, error: %s", id, err)
+		logger.Infof("ChangePassword.GetUserByID fail, id: %s, error: %s", id, err)
 		return err
 	}
 
@@ -145,7 +149,7 @@ func (s *UserService) ChangePassword(ctx *gin.Context, id string, req *dto.Chang
 
 	err = s.repo.Update(ctx, user)
 	if err != nil {
-		logger.Errorf("ChangePassword.Update fail, id: %s, error: %s", id, err)
+		logger.Infof("ChangePassword.Update fail, id: %s, error: %s", id, err)
 		return err
 	}
 

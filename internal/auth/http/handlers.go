@@ -2,9 +2,10 @@ package http
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
-	"net/http"
 
 	"shortbin/internal/auth/dto"
 	"shortbin/internal/auth/service"
@@ -42,7 +43,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	user, accessToken, refreshToken, err := h.service.Login(c, &req)
 	if err != nil {
 		logger.Error("Failed to login ", err)
-		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
+		response.Error(c, http.StatusBadRequest, err, response.WrongCredentials)
 		return
 	}
 
@@ -124,7 +125,7 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 	accessToken, err := h.service.RefreshToken(c, userID)
 	if err != nil {
 		logger.Error("Failed to refresh token ", err)
-		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
+		response.Error(c, http.StatusUnauthorized, err, response.Unauthorized)
 		return
 	}
 
@@ -156,6 +157,6 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	res := map[string]string{"Message": "Password changed successfully"}
+	res := map[string]string{"message": "password changed successfully"}
 	response.JSON(c, http.StatusOK, res)
 }
