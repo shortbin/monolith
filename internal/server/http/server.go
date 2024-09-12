@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/module/apmgin/v2"
 
 	authHttp "shortbin/internal/auth/http"
 	createHttp "shortbin/internal/create/http"
@@ -40,7 +40,7 @@ func (s Server) Run() error {
 	}
 
 	// APM Middleware
-	s.engine.Use(ApmMiddleware)
+	s.engine.Use(apmgin.Middleware(s.engine))
 
 	if err := s.MapRoutes(); err != nil {
 		log.Fatalf("MapRoutes Error: %v", err)
@@ -72,17 +72,4 @@ func (s Server) MapRoutes() error {
 	createHttp.Routes(v1, s.db, s.validator)
 
 	return nil
-}
-
-func ApmMiddleware(c *gin.Context) {
-	tracer := apm.DefaultTracer()
-	tx := tracer.StartTransaction(
-		c.Request.Method+" "+c.FullPath(),
-		"request",
-	)
-	defer tx.End()
-
-	tx.Context.SetLabel("request_path", c.Request.URL.Path)
-	c.Set("apmTransaction", tx)
-	c.Next()
 }

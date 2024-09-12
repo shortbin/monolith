@@ -1,7 +1,9 @@
 package service
 
 import (
-	"context"
+	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/v2"
+
 	"shortbin/internal/common/model"
 	"shortbin/internal/create/dto"
 	"shortbin/internal/create/repository"
@@ -13,7 +15,7 @@ import (
 
 //go:generate mockery --name=ICreateService
 type ICreateService interface {
-	Create(ctx context.Context, id string, req *dto.CreateReq) (*model.Url, error)
+	Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.Url, error)
 }
 
 type CreateService struct {
@@ -30,16 +32,22 @@ func NewCreateService(
 	}
 }
 
-func (s CreateService) Create(ctx context.Context, id string, req *dto.CreateReq) (*model.Url, error) {
+func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.Url, error) {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*CreateService.Create", "service", nil)
+	defer rootSpan.End()
+
 	if err := s.validator.ValidateStruct(req); err != nil {
 		return nil, err
 	}
 
 	var url model.Url
 	utils.Copy(&url, &req)
-
 	url.PopulateValues()
+
+	idGenSpan := apmTx.StartSpan("utils.IdGenerator", "utils", nil)
 	url.ShortId = utils.IdGenerator(config.GetConfig().ShortIdLength.Default)
+	idGenSpan.End()
 
 	if url.UserId = &id; id == "" {
 		url.UserId = nil

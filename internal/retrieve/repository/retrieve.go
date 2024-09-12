@@ -1,8 +1,10 @@
 package repository
 
 import (
-	"context"
 	"errors"
+
+	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/v2"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,7 +13,7 @@ import (
 )
 
 type IRetrieveRepository interface {
-	GetUrlByID(ctx context.Context, id string) (*model.Url, error)
+	GetUrlByID(ctx *gin.Context, id string) (*model.Url, error)
 }
 
 type RetrieveRepo struct {
@@ -22,9 +24,13 @@ func NewRetrieveRepository(db *pgxpool.Pool) *RetrieveRepo {
 	return &RetrieveRepo{db: db}
 }
 
-func (r *RetrieveRepo) GetUrlByID(ctx context.Context, id string) (*model.Url, error) {
+func (r *RetrieveRepo) GetUrlByID(ctx *gin.Context, id string) (*model.Url, error) {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*RetrieveRepo.GetUrlByID", "repository", nil)
+	defer rootSpan.End()
 
 	query := `SELECT short_id, long_url, user_id, created_at, expires_at FROM urls WHERE short_id=$1`
+
 	row := r.db.QueryRow(ctx, query, id)
 
 	var url model.Url

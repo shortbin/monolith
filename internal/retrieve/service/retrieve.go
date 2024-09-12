@@ -1,8 +1,10 @@
 package service
 
 import (
-	"context"
 	"errors"
+
+	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/v2"
 
 	"shortbin/internal/retrieve/repository"
 	"shortbin/pkg/config"
@@ -10,7 +12,7 @@ import (
 
 //go:generate mockery --name=IRetrieveService
 type IRetrieveService interface {
-	Retrieve(ctx context.Context, shortId string) (string, error)
+	Retrieve(ctx *gin.Context, shortId string) (string, error)
 }
 
 type RetrieveService struct {
@@ -24,7 +26,11 @@ func NewRetrieveService(
 	}
 }
 
-func (s RetrieveService) Retrieve(ctx context.Context, shortId string) (string, error) {
+func (s *RetrieveService) Retrieve(ctx *gin.Context, shortId string) (string, error) {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*RetrieveService.Retrieve", "service", nil)
+	defer rootSpan.End()
+
 	cfg := config.GetConfig()
 
 	if length := len(shortId); length < cfg.ShortIdLength.Min || cfg.ShortIdLength.Max < length {

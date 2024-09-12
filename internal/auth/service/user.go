@@ -1,13 +1,14 @@
 package service
 
 import (
-	"context"
 	"errors"
+
+	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/v2"
+	"golang.org/x/crypto/bcrypt"
 	"shortbin/internal/auth/model"
 	"shortbin/pkg/jwt"
 	"shortbin/pkg/utils"
-
-	"golang.org/x/crypto/bcrypt"
 
 	"shortbin/internal/auth/dto"
 	"shortbin/internal/auth/repository"
@@ -17,11 +18,11 @@ import (
 
 //go:generate mockery --name=IUserService
 type IUserService interface {
-	Login(ctx context.Context, req *dto.LoginReq) (*model.User, string, string, error)
-	Register(ctx context.Context, req *dto.RegisterReq) (*model.User, error)
-	GetUserByID(ctx context.Context, id string) (*model.User, error)
-	RefreshToken(ctx context.Context, userID string) (string, error)
-	ChangePassword(ctx context.Context, id string, req *dto.ChangePasswordReq) error
+	Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, string, string, error)
+	Register(ctx *gin.Context, req *dto.RegisterReq) (*model.User, error)
+	GetUserByID(ctx *gin.Context, id string) (*model.User, error)
+	RefreshToken(ctx *gin.Context, userID string) (string, error)
+	ChangePassword(ctx *gin.Context, id string, req *dto.ChangePasswordReq) error
 }
 
 type UserService struct {
@@ -38,10 +39,14 @@ func NewUserService(
 	}
 }
 
-func (s *UserService) Login(ctx context.Context, req *dto.LoginReq) (*model.User, string, string, error) {
+func (s *UserService) Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, string, string, error) {
 	if err := s.validator.ValidateStruct(req); err != nil {
 		return nil, "", "", err
 	}
+
+	apmTx := apm.TransactionFromContext(ctx)
+	rootSpan := apmTx.StartSpan("*UserService.Login", "service", nil)
+	defer rootSpan.End()
 
 	userDetails, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -62,10 +67,14 @@ func (s *UserService) Login(ctx context.Context, req *dto.LoginReq) (*model.User
 	return userDetails, accessToken, refreshToken, nil
 }
 
-func (s *UserService) Register(ctx context.Context, req *dto.RegisterReq) (*model.User, error) {
+func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.User, error) {
 	if err := s.validator.ValidateStruct(req); err != nil {
 		return nil, err
 	}
+
+	apmTx := apm.TransactionFromContext(ctx)
+	rootSpan := apmTx.StartSpan("*UserService.Register", "service", nil)
+	defer rootSpan.End()
 
 	var user model.User
 	utils.Copy(&user, &req)
@@ -80,7 +89,7 @@ func (s *UserService) Register(ctx context.Context, req *dto.RegisterReq) (*mode
 	return &user, nil
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, error) {
+func (s *UserService) GetUserByID(ctx *gin.Context, id string) (*model.User, error) {
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		logger.Errorf("GetUserByID fail, id: %s, error: %s", id, err)
@@ -90,7 +99,11 @@ func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, 
 	return user, nil
 }
 
-func (s *UserService) RefreshToken(ctx context.Context, userID string) (string, error) {
+func (s *UserService) RefreshToken(ctx *gin.Context, userID string) (string, error) {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*UserService.RefreshToken", "service", nil)
+	defer rootSpan.End()
+
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		logger.Errorf("RefreshToken.GetUserByID fail, id: %s, error: %s", userID, err)
@@ -105,10 +118,15 @@ func (s *UserService) RefreshToken(ctx context.Context, userID string) (string, 
 	return accessToken, nil
 }
 
-func (s *UserService) ChangePassword(ctx context.Context, id string, req *dto.ChangePasswordReq) error {
+func (s *UserService) ChangePassword(ctx *gin.Context, id string, req *dto.ChangePasswordReq) error {
 	if err := s.validator.ValidateStruct(req); err != nil {
 		return err
 	}
+
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*UserService.ChangePassword", "service", nil)
+	defer rootSpan.End()
+
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		logger.Errorf("ChangePassword.GetUserByID fail, id: %s, error: %s", id, err)
