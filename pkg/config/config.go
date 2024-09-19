@@ -14,12 +14,18 @@ type Config struct {
 	DataSourceName    string       `mapstructure:"data_source_name"`
 	ShortIdLength     ShortIdLimit `mapstructure:"short_id_length"`
 	ExpirationInYears int          `mapstructure:"expiration_in_years"`
+	Kafka             Kafka        `mapstructure:"kafka"`
 }
 
 type ShortIdLimit struct {
 	Default int `mapstructure:"default"`
 	Min     int `mapstructure:"min"`
 	Max     int `mapstructure:"max"`
+}
+
+type Kafka struct {
+	Broker string `mapstructure:"broker"`
+	Topic  string `mapstructure:"topic"`
 }
 
 var cfg Config

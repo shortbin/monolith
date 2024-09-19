@@ -4,6 +4,7 @@ import (
 	httpServer "shortbin/internal/server/http"
 	"shortbin/pkg/config"
 	"shortbin/pkg/database"
+	"shortbin/pkg/kafka"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/validation"
 )
@@ -17,9 +18,14 @@ func main() {
 		logger.Fatal("Cannot connect to database ", err)
 	}
 
+	kp := kafka.NewKafkaProducer(kafka.Config{
+		Broker: cfg.Kafka.Broker,
+		Topic:  cfg.Kafka.Topic,
+	})
+
 	validator := validation.New()
 
-	httpSvr := httpServer.NewServer(validator, db) //, cache)
+	httpSvr := httpServer.NewServer(validator, db, kp) //, cache)
 	if err = httpSvr.Run(); err != nil {
 		logger.Fatal(err)
 	}

@@ -6,16 +6,20 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"shortbin/internal/retrieve/service"
+	"shortbin/pkg/kafka"
+	"shortbin/pkg/logger"
 	"shortbin/pkg/response"
 )
 
 type RetrieveHandler struct {
-	service service.IRetrieveService
+	service       service.IRetrieveService
+	kafkaProducer kafka.IKafkaProducer
 }
 
-func NewRetrieveHandler(service service.IRetrieveService) *RetrieveHandler {
+func NewRetrieveHandler(service service.IRetrieveService, kafkaProducer kafka.IKafkaProducer) *RetrieveHandler {
 	return &RetrieveHandler{
-		service: service,
+		service:       service,
+		kafkaProducer: kafkaProducer,
 	}
 }
 
@@ -41,5 +45,25 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 		return
 	}
 
+	go produce(h, c, shortId)
 	c.Redirect(http.StatusMovedPermanently, longUrl)
+}
+
+func produce(h *RetrieveHandler, c *gin.Context, shortId string) {
+	value := map[string]string{
+		"short_id":     shortId,
+		"ip_address":   c.ClientIP(),
+		"user_agent":   c.GetHeader("User-Agent"),
+		"referer":      c.GetHeader("Referer"),
+		"request_uri":  c.Request.RequestURI,
+		"request_host": c.Request.Host,
+	}
+
+	err := h.kafkaProducer.Produce(c, shortId, value)
+	if err != nil {
+		logger.Infof("failed to produce message to Kafka: %v", err)
+		return
+	}
+
+	return
 }

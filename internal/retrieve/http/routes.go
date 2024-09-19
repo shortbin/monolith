@@ -6,12 +6,13 @@ import (
 
 	"shortbin/internal/retrieve/repository"
 	"shortbin/internal/retrieve/service"
+	"shortbin/pkg/kafka"
 )
 
-func Routes(e *gin.Engine, dbPool *pgxpool.Pool) {
+func Routes(e *gin.Engine, dbPool *pgxpool.Pool, kafkaProducer kafka.IKafkaProducer) {
 	retrieveRepo := repository.NewRetrieveRepository(dbPool)
 	retrieveSvc := service.NewRetrieveService(retrieveRepo)
-	retrieveHandler := NewRetrieveHandler(retrieveSvc)
+	retrieveHandler := NewRetrieveHandler(retrieveSvc, kafkaProducer)
 
 	e.GET("/:short_id", retrieveHandler.Retrieve)
 }

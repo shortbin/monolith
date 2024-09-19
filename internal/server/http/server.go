@@ -13,6 +13,7 @@ import (
 	createHttp "shortbin/internal/create/http"
 	retrieveHttp "shortbin/internal/retrieve/http"
 	"shortbin/pkg/config"
+	"shortbin/pkg/kafka"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/validation"
 )
@@ -22,14 +23,16 @@ type Server struct {
 	cfg       *config.Config
 	validator validation.Validation
 	db        *pgxpool.Pool
+	kp        kafka.IKafkaProducer
 }
 
-func NewServer(validator validation.Validation, db *pgxpool.Pool) *Server {
+func NewServer(validator validation.Validation, db *pgxpool.Pool, kp kafka.IKafkaProducer) *Server {
 	return &Server{
 		engine:    gin.Default(),
 		cfg:       config.GetConfig(),
 		validator: validator,
 		db:        db,
+		kp:        kp,
 	}
 }
 
@@ -67,7 +70,7 @@ func (s Server) GetEngine() *gin.Engine {
 func (s Server) MapRoutes() error {
 	v1 := s.engine.Group("/api/v1")
 
-	retrieveHttp.Routes(s.engine, s.db)
+	retrieveHttp.Routes(s.engine, s.db, s.kp)
 	authHttp.Routes(v1, s.db, s.validator)
 	createHttp.Routes(v1, s.db, s.validator)
 
