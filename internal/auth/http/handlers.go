@@ -84,7 +84,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	var res dto.RegisterRes
-	utils.Copy(&res.User, &user)
+	utils.Copy(&res, &user)
 	response.JSON(c, http.StatusOK, res)
 }
 

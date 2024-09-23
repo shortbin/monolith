@@ -16,7 +16,8 @@ type RegisterReq struct {
 }
 
 type RegisterRes struct {
-	User User `json:"auth"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type LoginReq struct {
