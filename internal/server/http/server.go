@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.elastic.co/apm/module/apmgin/v2"
@@ -42,7 +43,10 @@ func (s Server) Run() error {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// APM Middleware
+	if s.cfg.EnablePprof {
+		pprof.Register(s.engine)
+	}
+
 	s.engine.Use(apmgin.Middleware(s.engine))
 
 	if err := s.MapRoutes(); err != nil {

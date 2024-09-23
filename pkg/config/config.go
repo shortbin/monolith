@@ -15,6 +15,7 @@ type Config struct {
 	ShortIdLength     ShortIdLimit `mapstructure:"short_id_length"`
 	ExpirationInYears int          `mapstructure:"expiration_in_years"`
 	Kafka             Kafka        `mapstructure:"kafka"`
+	EnablePprof       bool         `mapstructure:"enable_pprof"`
 }
 
 type ShortIdLimit struct {
