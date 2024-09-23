@@ -64,6 +64,4 @@ func produce(h *RetrieveHandler, c *gin.Context, shortId string) {
 		logger.Infof("failed to produce message to Kafka: %v", err)
 		return
 	}
-
-	return
 }

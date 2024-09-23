@@ -72,10 +72,7 @@ func getDefaultOption() *option {
 	})
 
 	_ = v.RegisterValidation("password", func(fl validator.FieldLevel) bool {
-		if len(fl.Field().String()) < 6 {
-			return false
-		}
-		return true
+		return len(fl.Field().String()) >= 6
 	})
 
 	_ = v.RegisterTranslation("countryCode", trans, func(ut ut.Translator) error {

@@ -143,9 +143,9 @@ func (s *UserService) ChangePassword(ctx *gin.Context, id string, req *dto.Chang
 
 	if req.Password == req.NewPassword {
 		return errors.New("new password cannot be the same as the old password")
-	} else {
-		user.HashedPassword = utils.HashAndSalt([]byte(req.NewPassword))
 	}
+
+	user.HashedPassword = utils.HashAndSalt([]byte(req.NewPassword))
 
 	err = s.repo.Update(ctx, user)
 	if err != nil {

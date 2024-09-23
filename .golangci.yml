@@ -1,2 +1,9 @@
 linters:
   enable-all: true
+  disable:
+    - tagalign
+    - revive
+    - depguard
+    - exhaustruct
+    - tagliatelle
+    - varnamelen

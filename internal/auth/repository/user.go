@@ -29,8 +29,12 @@ func (r *UserRepo) Create(ctx *gin.Context, user *model.User) error {
 	defer rootSpan.End()
 
 	query := `INSERT INTO users (id, created_at, email, hashed_password) VALUES ($1, $2, $3, $4)`
-	_, err := r.db.Exec(ctx, query, user.ID, user.CreatedAt, user.Email, user.HashedPassword)
-	return err
+
+	if _, err := r.db.Exec(ctx, query, user.ID, user.CreatedAt, user.Email, user.HashedPassword); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *UserRepo) Update(ctx *gin.Context, user *model.User) error {
@@ -49,10 +53,9 @@ func (r *UserRepo) GetUserByID(ctx *gin.Context, id string) (*model.User, error)
 	defer rootSpan.End()
 
 	query := `SELECT id, created_at, email, hashed_password FROM users WHERE id=$1`
-	row := r.db.QueryRow(ctx, query, id)
 
 	var user model.User
-	if err := row.Scan(&user.ID, &user.CreatedAt, &user.Email, &user.HashedPassword); err != nil {
+	if err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.CreatedAt, &user.Email, &user.HashedPassword); err != nil {
 		return nil, err
 	}
 
@@ -65,10 +68,9 @@ func (r *UserRepo) GetUserByEmail(ctx *gin.Context, email string) (*model.User, 
 	defer rootSpan.End()
 
 	query := `SELECT id, created_at, email, hashed_password FROM users WHERE email=$1`
-	row := r.db.QueryRow(ctx, query, email)
 
 	var user model.User
-	if err := row.Scan(&user.ID, &user.CreatedAt, &user.Email, &user.HashedPassword); err != nil {
+	if err := r.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.CreatedAt, &user.Email, &user.HashedPassword); err != nil {
 		return nil, err
 	}
 

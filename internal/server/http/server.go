@@ -51,7 +51,6 @@ func (s Server) Run() error {
 
 	s.engine.GET("/api/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "online"})
-		return
 	})
 
 	// Start http server
