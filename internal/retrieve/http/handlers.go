@@ -51,12 +51,12 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 
 func produce(h *RetrieveHandler, c *gin.Context, shortId string) {
 	value := map[string]string{
-		"short_id":     shortId,
-		"ip_address":   c.ClientIP(),
-		"user_agent":   c.GetHeader("User-Agent"),
-		"referer":      c.GetHeader("Referer"),
-		"request_uri":  c.Request.RequestURI,
-		"request_host": c.Request.Host,
+		"short_id":        shortId,
+		"ip_address":      c.ClientIP(),
+		"user_agent":      c.GetHeader("User-Agent"),
+		"referer":         c.GetHeader("Referer"),
+		"x_forwarded_for": c.GetHeader("X-Forwarded-For"),
+		"request_host":    c.Request.Host,
 	}
 
 	err := h.kafkaProducer.Produce(c, shortId, value)
