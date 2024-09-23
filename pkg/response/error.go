@@ -14,6 +14,7 @@ const (
 	IdNotFound         = "id not found"
 	UserAlreadyExists  = "user already exists"
 	EmptyUserId        = "user id is empty"
+	IdLengthNotInRange = "id length not in range"
 )
 
 func Error(c *gin.Context, status int, err error, message string) {

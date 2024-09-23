@@ -8,6 +8,7 @@ import (
 
 	"shortbin/internal/retrieve/repository"
 	"shortbin/pkg/config"
+	"shortbin/pkg/response"
 )
 
 //go:generate mockery --name=IRetrieveService
@@ -34,7 +35,7 @@ func (s *RetrieveService) Retrieve(ctx *gin.Context, shortId string) (string, er
 	cfg := config.GetConfig()
 
 	if length := len(shortId); length < cfg.ShortIdLength.Min || cfg.ShortIdLength.Max < length {
-		return "", errors.New("length not in range")
+		return "", errors.New(response.IdLengthNotInRange)
 	}
 
 	url, err := s.repo.GetUrlByID(ctx, shortId)
