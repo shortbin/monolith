@@ -6,13 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/crypto/bcrypt"
-	"shortbin/internal/auth/model"
-	"shortbin/pkg/jwt"
-	"shortbin/pkg/utils"
 
 	"shortbin/internal/auth/dto"
+	"shortbin/internal/auth/model"
 	"shortbin/internal/auth/repository"
+	"shortbin/pkg/jwt"
 	"shortbin/pkg/logger"
+	"shortbin/pkg/utils"
 	"shortbin/pkg/validation"
 )
 
@@ -44,7 +44,7 @@ func (s *UserService) Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, s
 		return nil, "", "", err
 	}
 
-	apmTx := apm.TransactionFromContext(ctx)
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.Login", "service", nil)
 	defer rootSpan.End()
 
@@ -72,7 +72,7 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 		return nil, err
 	}
 
-	apmTx := apm.TransactionFromContext(ctx)
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.Register", "service", nil)
 	defer rootSpan.End()
 
