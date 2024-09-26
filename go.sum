@@ -75,8 +75,6 @@ github.com/magiconair/properties v1.8.7 h1:IeQXZAiQcpL9mgcAe1Nu6cX9LLw6ExEHKjN0V
 github.com/magiconair/properties v1.8.7/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/mattn/go-sqlite3 v1.10.0 h1:jbhqpg7tQe4SupckyijYiy0mJJ/pRyHvXf7JdWK860o=
-github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
@@ -142,10 +140,8 @@ go.elastic.co/apm/module/apmgin/v2 v2.6.2 h1:lz7ltJ66xso1himwGMUSfg9WZ+jexZR7gKr
 go.elastic.co/apm/module/apmgin/v2 v2.6.2/go.mod h1:1i0zh/7LR4TQiEoZf3er9MEXTtq8qdrwH4GRcXxw+zU=
 go.elastic.co/apm/module/apmhttp/v2 v2.6.2 h1:+aYtP1Lnrsm+XtEs87RWG2PAyU6LHDDnYnJl3Lth0Qk=
 go.elastic.co/apm/module/apmhttp/v2 v2.6.2/go.mod h1:vlH+vXHaEijKK4pk605LOK+lbLDKwcByhlq4J24PeXw=
-go.elastic.co/apm/module/apmpgxv5/v2 v2.6.2 h1:LU+8mDPpdtILEUmm9axoVPJmIFP2E/874LioJz/YbQg=
-go.elastic.co/apm/module/apmpgxv5/v2 v2.6.2/go.mod h1:srfujfnGd4yShnh4DsFMi3R1rgV2yO4J2e7O4el5pxg=
-go.elastic.co/apm/module/apmsql/v2 v2.6.2 h1:wKCfsGhU9L1w0xM5hVMnukzTb35eIFU3L68gg0v55wU=
-go.elastic.co/apm/module/apmsql/v2 v2.6.2/go.mod h1:W2tSac0SXRQwtj4DS+IJTb2oLWffW6fDHQmiw3GKAvk=
+go.elastic.co/apm/module/apmzap/v2 v2.6.2 h1:MPpoAPkz9c3E0oflwzyrXnND/4zv9nXf/wEU0aAVWWc=
+go.elastic.co/apm/module/apmzap/v2 v2.6.2/go.mod h1:10Xugf8PdrDjmyQYqSgJ/JUhKFMgpivQkTRVV9dUUeI=
 go.elastic.co/apm/v2 v2.6.2 h1:VBplAxgbOgTv+Giw/FS91xJpHYw/q8fz/XKPvqC+7/o=
 go.elastic.co/apm/v2 v2.6.2/go.mod h1:33rOXgtHwbgZcDgi6I/GtCSMZQqgxkHC0IQT3gudKvo=
 go.elastic.co/fastjson v1.4.0 h1:a4BXUKXZHAzjVOPrqtEx2FDsIRBCMek01vCnrtyutWs=

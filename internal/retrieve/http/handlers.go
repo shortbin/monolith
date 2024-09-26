@@ -1,6 +1,7 @@
 package http
 
 import (
+	"go.elastic.co/apm/module/apmzap/v2"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,12 +35,14 @@ func NewRetrieveHandler(service service.IRetrieveService, kafkaProducer kafka.IK
 // @Router /{short_id} [get]
 func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 	shortId := c.Param("short_id")
+	traceContextFields := apmzap.TraceContext(c.Request.Context())
 
 	longUrl, err := h.service.Retrieve(c, shortId)
 	if err != nil {
 		if e := err.Error(); e == response.IdNotFound || e == response.IdLengthNotInRange {
 			response.Error(c, http.StatusNotFound, err, response.IdNotFound)
 		} else {
+			logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		}
 		return

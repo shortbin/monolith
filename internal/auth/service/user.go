@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/module/apmzap/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/crypto/bcrypt"
 
@@ -45,12 +46,14 @@ func (s *UserService) Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, s
 	}
 
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.Login", "service", nil)
 	defer rootSpan.End()
 
 	userDetails, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		logger.Infof("Login.GetUserByEmail fail, email: %s, error: %s", req.Email, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, "", "", err
 	}
 
@@ -73,6 +76,7 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 	}
 
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.Register", "service", nil)
 	defer rootSpan.End()
 
@@ -84,6 +88,7 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 	err := s.repo.Create(ctx, &user)
 	if err != nil {
 		logger.Infof("Register.Create fail, email: %s, error: %s", req.Email, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, err
 	}
 	return &user, nil
@@ -91,12 +96,14 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 
 func (s *UserService) GetUserByID(ctx *gin.Context, id string) (*model.User, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.GetUserByID", "service", nil)
 	defer rootSpan.End()
 
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		logger.Infof("GetUserByID fail, id: %s, error: %s", id, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, err
 	}
 
@@ -105,12 +112,14 @@ func (s *UserService) GetUserByID(ctx *gin.Context, id string) (*model.User, err
 
 func (s *UserService) RefreshToken(ctx *gin.Context, userID string) (string, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.RefreshToken", "service", nil)
 	defer rootSpan.End()
 
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		logger.Infof("RefreshToken.GetUserByID fail, id: %s, error: %s", userID, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return "", err
 	}
 
@@ -128,12 +137,14 @@ func (s *UserService) ChangePassword(ctx *gin.Context, id string, req *dto.Chang
 	}
 
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.ChangePassword", "service", nil)
 	defer rootSpan.End()
 
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		logger.Infof("ChangePassword.GetUserByID fail, id: %s, error: %s", id, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return err
 	}
 
@@ -150,6 +161,7 @@ func (s *UserService) ChangePassword(ctx *gin.Context, id string, req *dto.Chang
 	err = s.repo.Update(ctx, user)
 	if err != nil {
 		logger.Infof("ChangePassword.Update fail, id: %s, error: %s", id, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return err
 	}
 

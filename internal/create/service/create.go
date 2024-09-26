@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/module/apmzap/v2"
 	"go.elastic.co/apm/v2"
 
 	"shortbin/internal/common/model"
@@ -34,6 +35,7 @@ func NewCreateService(
 
 func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.Url, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*CreateService.Create", "service", nil)
 	defer rootSpan.End()
 
@@ -56,6 +58,7 @@ func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) 
 	err := s.repo.Create(ctx, &url)
 	if err != nil {
 		logger.Infof("Create.Create failed, long_url: %s, error: %s", url.LongUrl, err)
+		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, err
 	}
 

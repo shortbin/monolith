@@ -1,14 +1,21 @@
 package logger
 
 import (
+	"go.elastic.co/apm/module/apmzap/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 const ProductionEnvName = "production"
 
-// Global logger variable
+// Global logger, apmLog variables
 var logger Logger
+var ApmLogger = newAPMLogger()
+
+func newAPMLogger() *zap.Logger {
+	apmLogger := zap.NewExample(zap.WrapCore((&apmzap.Core{}).WrapCore))
+	return apmLogger
+}
 
 // Initialize default production is false if not call func
 func Initialize(environment string) {
