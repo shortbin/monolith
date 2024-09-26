@@ -16,7 +16,7 @@ import (
 
 //go:generate mockery --name=ICreateService
 type ICreateService interface {
-	Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.Url, error)
+	Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.URL, error)
 }
 
 type CreateService struct {
@@ -33,7 +33,7 @@ func NewCreateService(
 	}
 }
 
-func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.Url, error) {
+func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) (*model.URL, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
 	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*CreateService.Create", "service", nil)
@@ -43,21 +43,21 @@ func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) 
 		return nil, err
 	}
 
-	var url model.Url
+	var url model.URL
 	utils.Copy(&url, &req)
 	url.PopulateValues()
 
 	idGenSpan := apmTx.StartSpan("utils.IdGenerator", "utils", nil)
-	url.ShortId = utils.IdGenerator(config.GetConfig().ShortIdLength.Default)
+	url.ShortID = utils.IDGenerator(config.GetConfig().ShortIDLength.Default)
 	idGenSpan.End()
 
-	if url.UserId = &id; id == "" {
-		url.UserId = nil
+	if url.UserID = &id; id == "" {
+		url.UserID = nil
 	}
 
 	err := s.repo.Create(ctx, &url)
 	if err != nil {
-		logger.Infof("Create.Create failed, long_url: %s, error: %s", url.LongUrl, err)
+		logger.Infof("Create.Create failed, long_url: %s, error: %s", url.LongURL, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, err
 	}

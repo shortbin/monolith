@@ -9,16 +9,16 @@ const ProductionEnv = "production"
 
 type Config struct {
 	Environment       string       `mapstructure:"environment"`
-	HttpPort          int          `mapstructure:"http_port"`
+	HTTPPort          int          `mapstructure:"http_port"`
 	AuthSecret        string       `mapstructure:"auth_secret"`
 	DataSourceName    string       `mapstructure:"data_source_name"`
-	ShortIdLength     ShortIdLimit `mapstructure:"short_id_length"`
+	ShortIDLength     ShortIDLimit `mapstructure:"short_id_length"`
 	ExpirationInYears int          `mapstructure:"expiration_in_years"`
 	Kafka             Kafka        `mapstructure:"kafka"`
 	EnablePprof       bool         `mapstructure:"enable_pprof"`
 }
 
-type ShortIdLimit struct {
+type ShortIDLimit struct {
 	Default int `mapstructure:"default"`
 	Min     int `mapstructure:"min"`
 	Max     int `mapstructure:"max"`

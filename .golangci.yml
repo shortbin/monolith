@@ -3,3 +3,4 @@ linters:
     - staticcheck
     - gosec
     - revive
+    - gocritic

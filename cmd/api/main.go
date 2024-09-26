@@ -25,7 +25,7 @@ func main() {
 
 	validator := validation.New()
 
-	httpSvr := httpServer.NewServer(validator, db, kp) //, cache)
+	httpSvr := httpServer.NewServer(validator, db, kp)
 	if err = httpSvr.Run(); err != nil {
 		logger.Fatal(err)
 	}

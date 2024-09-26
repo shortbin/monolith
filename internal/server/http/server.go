@@ -58,8 +58,8 @@ func (s Server) Run() error {
 	})
 
 	// Start http server
-	logger.Info("HTTP server is listening on port ", s.cfg.HttpPort)
-	if err := s.engine.Run(fmt.Sprintf(":%d", s.cfg.HttpPort)); err != nil {
+	logger.Info("HTTP server is listening on port ", s.cfg.HTTPPort)
+	if err := s.engine.Run(fmt.Sprintf(":%d", s.cfg.HTTPPort)); err != nil {
 		log.Fatalf("Running HTTP server: %v", err)
 	}
 

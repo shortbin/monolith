@@ -99,7 +99,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.GetString("userId")
 	if userID == "" {
-		response.Error(c, http.StatusUnauthorized, errors.New(response.EmptyUserId), response.Unauthorized)
+		response.Error(c, http.StatusUnauthorized, errors.New(response.EmptyUserID), response.Unauthorized)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 func (h *UserHandler) RefreshToken(c *gin.Context) {
 	userID := c.GetString("userId")
 	if userID == "" {
-		response.Error(c, http.StatusUnauthorized, errors.New(response.EmptyUserId), response.Unauthorized)
+		response.Error(c, http.StatusUnauthorized, errors.New(response.EmptyUserID), response.Unauthorized)
 		return
 	}
 
