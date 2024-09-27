@@ -49,5 +49,6 @@ type ForgotPasswordReq struct {
 }
 
 type ResetPasswordReq struct {
-	Password string `json:"password" validate:"required,password"`
+	AccessToken string `json:"access_token"`
+	Password    string `json:"password" validate:"required,password"`
 }

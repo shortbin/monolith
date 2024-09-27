@@ -222,13 +222,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	accessToken, _ := c.GetQuery("token")
-	if accessToken == "" {
-		response.Error(c, http.StatusBadRequest, errors.New(response.Unauthorized), response.InvalidParameters)
-		return
-	}
-
-	payload, err := jwt.ValidateToken(accessToken)
+	payload, err := jwt.ValidateToken(req.AccessToken)
 	if err != nil || payload == nil || payload["type"] != jwt.ForgotPasswordTokenType {
 		c.JSON(http.StatusUnauthorized, nil)
 		c.Abort()
