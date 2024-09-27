@@ -2,8 +2,9 @@ package service
 
 import (
 	"errors"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.elastic.co/apm/module/apmzap/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -89,6 +90,12 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 	user.HashedPassword = utils.HashAndSalt([]byte(user.HashedPassword))
 	err := s.repo.Create(ctx, &user)
 	if err != nil {
+		// Check if the error indicates that the user already exists
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" { // unique violation code
+			logger.Infof("Registration failed for email: %s, user already exists", req.Email)
+			return nil, err
+		}
 		logger.Infof("Register.Create fail, email: %s, error: %s", req.Email, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, err
@@ -182,6 +189,11 @@ func (s *UserService) SendPasswordResetEmail(ctx *gin.Context, req *dto.ForgotPa
 
 	user, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) { // user not found
+			logger.Infof("SendPasswordResetEmail failed for email: %s, user with email not found", req.Email)
+			return "", err
+		}
+
 		logger.Infof("SendPasswordResetEmail.GetUserByEmail fail, email: %s, error: %s", req.Email, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return "", err

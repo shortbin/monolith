@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
 	"shortbin/internal/auth/dto"
@@ -73,14 +74,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	user, err := h.service.Register(c, &req)
 	if err != nil {
+		// Check for user already exists error
 		var pgErr *pgconn.PgError
-		// check if error is that user already exists
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			response.Error(c, http.StatusConflict, pgErr, response.UserAlreadyExists)
-		} else {
-			logger.Error(err.Error())
-			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
+			response.Error(c, http.StatusConflict, err, response.UserAlreadyExists)
+			return
 		}
+
+		logger.Error(err.Error())
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		return
 	}
 
@@ -189,10 +191,10 @@ func (h *UserHandler) ForgotPassword(c *gin.Context) {
 	accessToken, err := h.service.SendPasswordResetEmail(c, &req)
 	if err != nil {
 		// check if error is that userID not found
-		if e := err.Error(); e == response.NoRowsInResultSet {
+		if errors.Is(err, pgx.ErrNoRows) {
 			response.Error(c, http.StatusNotFound, err, response.UserNotFound)
 		} else {
-			logger.Error(e)
+			logger.Error(err)
 			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		}
 		return
