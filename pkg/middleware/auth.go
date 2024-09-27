@@ -19,7 +19,7 @@ func OptionalJWTAuth() gin.HandlerFunc {
 }
 
 func JWTAuth() gin.HandlerFunc {
-	return JWT(jwt.AccessTokenType)
+	return JWT(jwt.LoginTokenType)
 }
 
 func JWTRefresh() gin.HandlerFunc {

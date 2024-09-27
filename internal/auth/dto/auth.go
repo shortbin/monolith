@@ -43,3 +43,11 @@ type ChangePasswordReq struct {
 	Password    string `json:"password" validate:"required,password"`
 	NewPassword string `json:"new_password" validate:"required,password"`
 }
+
+type ForgotPasswordReq struct {
+	Email string `json:"email"  validate:"required,email"`
+}
+
+type ResetPasswordReq struct {
+	Password string `json:"password" validate:"required,password"`
+}

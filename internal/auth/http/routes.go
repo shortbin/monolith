@@ -21,8 +21,10 @@ func Routes(r *gin.RouterGroup, dbPool *pgxpool.Pool, validator validation.Valid
 	{
 		authRoute.POST("/register", userHandler.Register)
 		authRoute.POST("/login", userHandler.Login)
+		authRoute.POST("/forgot-password", userHandler.ForgotPassword)
+		authRoute.POST("/reset-password", userHandler.ResetPassword)
 		authRoute.POST("/refresh", refreshAuthMiddleware, userHandler.RefreshToken)
 		authRoute.GET("/me", authMiddleware, userHandler.GetMe)
-		authRoute.PUT("/password", authMiddleware, userHandler.ChangePassword)
+		authRoute.POST("/change-password", authMiddleware, userHandler.ChangePassword)
 	}
 }

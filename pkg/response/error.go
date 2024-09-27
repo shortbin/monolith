@@ -16,6 +16,8 @@ const (
 	UserAlreadyExists  = "user already exists"
 	EmptyUserID        = "user id is empty"
 	IDLengthNotInRange = "id length not in range"
+	UserNotFound       = "user not found"
+	NoRowsInResultSet  = "no rows in result set"
 )
 
 func Error(c *gin.Context, status int, err error, message string) {

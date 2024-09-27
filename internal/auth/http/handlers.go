@@ -9,6 +9,7 @@ import (
 
 	"shortbin/internal/auth/dto"
 	"shortbin/internal/auth/service"
+	"shortbin/pkg/jwt"
 	"shortbin/pkg/logger"
 	"shortbin/pkg/response"
 	"shortbin/pkg/utils"
@@ -115,6 +116,14 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	response.JSON(c, http.StatusOK, res)
 }
 
+// RefreshToken godoc
+//
+//	@Summary	changes the password
+//	@Tags		users
+//	@Security	ApiKeyAuth
+//	@Produce	json
+//	@Success	200	{object} 			dto.RefreshTokenRes
+//	@Router		/api/v1/auth/refresh 	[post]
 func (h *UserHandler) RefreshToken(c *gin.Context) {
 	userID := c.GetString("userId")
 	if userID == "" {
@@ -158,5 +167,81 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	}
 
 	res := map[string]string{"message": "password changed successfully"}
+	response.JSON(c, http.StatusOK, res)
+}
+
+// ForgotPassword godoc
+//
+//	@Summary	forgot password
+//	@Tags		users
+//	@Produce	json
+//	@Param		_	body	dto.ForgotPasswordReq	true	"Body"
+//	@Router		/api/v1/auth/forgot-password [post]
+func (h *UserHandler) ForgotPassword(c *gin.Context) {
+	var req dto.ForgotPasswordReq
+	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
+		logger.Error("Failed to get body ", err)
+		response.Error(c, http.StatusBadRequest, err, response.InvalidParameters)
+		return
+	}
+
+	// accessToken is temporary and should be sent over email
+	accessToken, err := h.service.SendPasswordResetEmail(c, &req)
+	if err != nil {
+		// check if error is that userID not found
+		if e := err.Error(); e == response.NoRowsInResultSet {
+			response.Error(c, http.StatusNotFound, err, response.UserNotFound)
+		} else {
+			logger.Error(e)
+			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
+		}
+		return
+	}
+
+	res := map[string]string{
+		"message":      "forgot password email sent",
+		"access_token": accessToken,
+	}
+	response.JSON(c, http.StatusOK, res)
+}
+
+// ResetPassword godoc
+//
+//	@Summary	reset password
+//	@Tags		users
+//	@Produce	json
+//	@Param		_	body	dto.ResetPasswordReq	true	"Body"
+//	@Router		/api/v1/auth/reset-password [post]
+func (h *UserHandler) ResetPassword(c *gin.Context) {
+	var req dto.ResetPasswordReq
+	if err := c.ShouldBindJSON(&req); c.Request.Body == nil || err != nil {
+		logger.Error("Failed to get body ", err)
+		response.Error(c, http.StatusBadRequest, err, response.InvalidParameters)
+		return
+	}
+
+	accessToken, _ := c.GetQuery("token")
+	if accessToken == "" {
+		response.Error(c, http.StatusBadRequest, errors.New(response.Unauthorized), response.InvalidParameters)
+		return
+	}
+
+	payload, err := jwt.ValidateToken(accessToken)
+	if err != nil || payload == nil || payload["type"] != jwt.ForgotPasswordTokenType {
+		c.JSON(http.StatusUnauthorized, nil)
+		c.Abort()
+		return
+	}
+
+	userID := payload["id"].(string)
+	err = h.service.ResetPassword(c, userID, &req)
+
+	if err != nil {
+		logger.Error(err.Error())
+		response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
+		return
+	}
+
+	res := map[string]string{"message": "password reset successful"}
 	response.JSON(c, http.StatusOK, res)
 }
