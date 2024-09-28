@@ -9,18 +9,21 @@ import (
 	"shortbin/internal/retrieve/service"
 	"shortbin/pkg/kafka"
 	"shortbin/pkg/logger"
+	"shortbin/pkg/redis"
 	"shortbin/pkg/response"
 )
 
 type RetrieveHandler struct {
 	service       service.IRetrieveService
 	kafkaProducer kafka.IKafkaProducer
+	redis         redis.IRedis
 }
 
-func NewRetrieveHandler(service service.IRetrieveService, kafkaProducer kafka.IKafkaProducer) *RetrieveHandler {
+func NewRetrieveHandler(service service.IRetrieveService, kafkaProducer kafka.IKafkaProducer, redis redis.IRedis) *RetrieveHandler {
 	return &RetrieveHandler{
 		service:       service,
 		kafkaProducer: kafkaProducer,
+		redis:         redis,
 	}
 }
 
