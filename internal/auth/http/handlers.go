@@ -192,17 +192,14 @@ func (h *UserHandler) ForgotPassword(c *gin.Context) {
 	accessToken, err := h.service.SendPasswordResetEmail(c, &req)
 	if err != nil {
 		// check if error is that userID not found
-		if errors.Is(err, pgx.ErrNoRows) {
-			response.Error(c, http.StatusNotFound, err, response.UserNotFound)
-		} else {
+		if !errors.Is(err, pgx.ErrNoRows) {
 			logger.Error(err)
 			response.Error(c, http.StatusInternalServerError, err, response.SomethingWentWrong)
 		}
-		return
 	}
 
 	res := map[string]string{
-		"message":      "forgot password email sent",
+		"message":      "if email is valid, password reset email will be sent",
 		"access_token": accessToken,
 	}
 	response.JSON(c, http.StatusOK, res)
