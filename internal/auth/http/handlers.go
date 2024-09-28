@@ -133,7 +133,8 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.service.RefreshToken(c, userID)
+	userEmail := c.GetString("userEmail")
+	accessToken, err := h.service.RefreshToken(c, userID, userEmail)
 	if err != nil {
 		logger.Error("Failed to refresh token ", err)
 		response.Error(c, http.StatusUnauthorized, err, response.Unauthorized)
@@ -222,15 +223,15 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	payload, err := jwt.ValidateToken(req.AccessToken)
-	if err != nil || payload == nil || payload["type"] != jwt.ForgotPasswordTokenType {
+	payload, err := jwt.ValidateToken(req.ResetToken)
+	if err != nil || payload == nil || payload["type"] != jwt.ResetPasswordTokenType {
 		c.JSON(http.StatusUnauthorized, nil)
 		c.Abort()
 		return
 	}
 
 	userID := payload["id"].(string)
-	err = h.service.ResetPassword(c, userID, &req)
+	err = h.service.ResetPassword(c, userID, req.Password)
 
 	if err != nil {
 		logger.Error(err.Error())

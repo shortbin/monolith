@@ -12,20 +12,20 @@ import (
 )
 
 const (
-	LoginTokenExpiredTime     = 5 * 60 * 60   // 5 hours
-	RefreshTokenExpiredTime   = 7 * 24 * 3600 // 7 days
-	ForgotPasswordExpiredTime = 15 * 60       // 15 minutes
-	LoginTokenType            = "x-access"
-	RefreshTokenType          = "x-refresh"
-	ForgotPasswordTokenType   = "x-forgot-password"
+	LoginTokenExpiryTime    = 5 * 60 * 60   // 5 hours
+	RefreshTokenExpiryTime  = 7 * 24 * 3600 // 7 days
+	ResetPasswordExpiryTime = 15 * 60       // 15 minutes
+	LoginTokenType          = "x-access"
+	RefreshTokenType        = "x-refresh"
+	ResetPasswordTokenType  = "x-reset"
 )
 
 func GenerateAccessToken(payload map[string]interface{}, scope string) string {
 	var exp int64
 	if scope == LoginTokenType {
-		exp = time.Now().Add(time.Second * LoginTokenExpiredTime).Unix()
-	} else if scope == ForgotPasswordTokenType {
-		exp = time.Now().Add(time.Second * ForgotPasswordExpiredTime).Unix()
+		exp = time.Now().Add(time.Second * LoginTokenExpiryTime).Unix()
+	} else if scope == ResetPasswordTokenType {
+		exp = time.Now().Add(time.Second * ResetPasswordExpiryTime).Unix()
 	}
 
 	payload["type"] = scope
@@ -47,7 +47,7 @@ func GenerateRefreshToken(payload map[string]interface{}) string {
 	payload["type"] = RefreshTokenType
 	tokenContent := jwt.MapClaims{
 		"payload": payload,
-		"exp":     time.Now().Add(time.Second * RefreshTokenExpiredTime).Unix(),
+		"exp":     time.Now().Add(time.Second * RefreshTokenExpiryTime).Unix(),
 	}
 	jwtToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tokenContent)
 	token, err := jwtToken.SignedString([]byte(config.GetConfig().AuthSecret))

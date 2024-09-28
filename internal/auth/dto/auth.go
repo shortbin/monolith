@@ -22,7 +22,7 @@ type RegisterRes struct {
 
 type LoginReq struct {
 	Email    string `json:"email"  validate:"required,email"`
-	Password string `json:"password"  validate:"required,password"`
+	Password string `json:"password"  validate:"required"`
 }
 
 type LoginRes struct {
@@ -40,8 +40,8 @@ type RefreshTokenRes struct {
 }
 
 type ChangePasswordReq struct {
-	Password    string `json:"password" validate:"required,password"`
-	NewPassword string `json:"new_password" validate:"required,password"`
+	Password    string `json:"password" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required"`
 }
 
 type ForgotPasswordReq struct {
@@ -49,6 +49,6 @@ type ForgotPasswordReq struct {
 }
 
 type ResetPasswordReq struct {
-	AccessToken string `json:"access_token"`
-	Password    string `json:"password" validate:"required,password"`
+	ResetToken string `json:"reset_token" validate:"required"`
+	Password   string `json:"password" validate:"required"`
 }

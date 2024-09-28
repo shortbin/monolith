@@ -42,6 +42,7 @@ func JWT(tokenType string) gin.HandlerFunc {
 			return
 		}
 		c.Set("userId", payload["id"])
+		c.Set("userEmail", payload["email"])
 		c.Next()
 	}
 }

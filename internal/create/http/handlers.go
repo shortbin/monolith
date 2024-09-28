@@ -30,7 +30,7 @@ func (h CreateHandler) Create(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("userID")
+	userID := c.GetString("userId")
 	url, err := h.service.Create(c, userID, &req)
 	if err != nil {
 		logger.Error(err.Error())

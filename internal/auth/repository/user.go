@@ -9,9 +9,10 @@ import (
 )
 
 type IUserRepository interface {
-	Create(ctx *gin.Context, user *model.User) error
+	Create(ctx *gin.Context, email string, hashedPassword string) (*model.User, error)
 	Update(ctx *gin.Context, user *model.User) error
-	GetUserByID(ctx *gin.Context, id string) (*model.User, error)
+	UpdatePassword(ctx *gin.Context, userID string, hashedPassword string) error
+	GetUserByID(ctx *gin.Context, userID string) (*model.User, error)
 	GetUserByEmail(ctx *gin.Context, email string) (*model.User, error)
 }
 
@@ -23,18 +24,19 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-func (r *UserRepo) Create(ctx *gin.Context, user *model.User) error {
+func (r *UserRepo) Create(ctx *gin.Context, email string, hashedPassword string) (*model.User, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserRepo.Create", "repository", nil)
 	defer rootSpan.End()
 
-	query := `INSERT INTO users (id, created_at, email, hashed_password) VALUES ($1, $2, $3, $4)`
+	query := `INSERT INTO users (email, hashed_password) VALUES ($1, $2) RETURNING id, created_at, email, hashed_password`
 
-	if _, err := r.db.Exec(ctx, query, user.ID, user.CreatedAt, user.Email, user.HashedPassword); err != nil {
-		return err
+	var createdUser model.User
+	if err := r.db.QueryRow(ctx, query, email, hashedPassword).Scan(&createdUser.ID, &createdUser.CreatedAt, &createdUser.Email, &createdUser.HashedPassword); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return &createdUser, nil
 }
 
 func (r *UserRepo) Update(ctx *gin.Context, user *model.User) error {
@@ -44,6 +46,16 @@ func (r *UserRepo) Update(ctx *gin.Context, user *model.User) error {
 
 	query := `UPDATE users SET email=$1, hashed_password=$2 WHERE id=$3`
 	_, err := r.db.Exec(ctx, query, user.Email, user.HashedPassword, user.ID)
+	return err
+}
+
+func (r *UserRepo) UpdatePassword(ctx *gin.Context, userID string, hashedPassword string) error {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*UserRepo.UpdatePassword", "repository", nil)
+	defer rootSpan.End()
+
+	query := `UPDATE users SET hashed_password=$1 WHERE id=$2`
+	_, err := r.db.Exec(ctx, query, hashedPassword, userID)
 	return err
 }
 

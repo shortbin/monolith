@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // User model
@@ -12,9 +10,4 @@ type User struct {
 	Email          string    `json:"email"`
 	HashedPassword string    `json:"password"`
 	CreatedAt      time.Time `json:"created_at"`
-}
-
-func (user *User) PopulateValues() {
-	user.ID = uuid.New().String()
-	user.CreatedAt = time.Now()
 }

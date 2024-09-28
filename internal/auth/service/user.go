@@ -23,10 +23,10 @@ type IUserService interface {
 	Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, string, string, error)
 	Register(ctx *gin.Context, req *dto.RegisterReq) (*model.User, error)
 	GetUserByID(ctx *gin.Context, id string) (*model.User, error)
-	RefreshToken(ctx *gin.Context, userID string) (string, error)
+	RefreshToken(ctx *gin.Context, userID string, userEmail string) (string, error)
 	ChangePassword(ctx *gin.Context, userID string, req *dto.ChangePasswordReq) error
 	SendPasswordResetEmail(ctx *gin.Context, req *dto.ForgotPasswordReq) (string, error)
-	ResetPassword(c *gin.Context, userID string, d *dto.ResetPasswordReq) error
+	ResetPassword(c *gin.Context, userID string, password string) error
 }
 
 type UserService struct {
@@ -53,24 +53,24 @@ func (s *UserService) Login(ctx *gin.Context, req *dto.LoginReq) (*model.User, s
 	rootSpan := apmTx.StartSpan("*UserService.Login", "service", nil)
 	defer rootSpan.End()
 
-	userDetails, err := s.repo.GetUserByEmail(ctx, req.Email)
+	user, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		logger.Infof("Login.GetUserByEmail fail, email: %s, error: %s", req.Email, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, "", "", err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(userDetails.HashedPassword), []byte(req.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(req.Password)); err != nil {
 		return nil, "", "", errors.New("wrong password")
 	}
 
 	tokenData := map[string]interface{}{
-		"id":    userDetails.ID,
-		"email": userDetails.Email,
+		"id":    user.ID,
+		"email": user.Email,
 	}
 	accessToken := jwt.GenerateAccessToken(tokenData, jwt.LoginTokenType)
 	refreshToken := jwt.GenerateRefreshToken(tokenData)
-	return userDetails, accessToken, refreshToken, nil
+	return user, accessToken, refreshToken, nil
 }
 
 func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.User, error) {
@@ -83,35 +83,15 @@ func (s *UserService) Register(ctx *gin.Context, req *dto.RegisterReq) (*model.U
 	rootSpan := apmTx.StartSpan("*UserService.Register", "service", nil)
 	defer rootSpan.End()
 
-	var user model.User
-	utils.Copy(&user, &req)
-	// populate auth model with values
-	user.PopulateValues()
-	user.HashedPassword = utils.HashAndSalt([]byte(user.HashedPassword))
-	err := s.repo.Create(ctx, &user)
+	hashedPassword := utils.HashAndSalt([]byte(req.Password))
+	user, err := s.repo.Create(ctx, req.Email, hashedPassword)
 	if err != nil {
 		// Check if the error indicates that the user already exists
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" { // unique violation code
-			logger.Infof("Registration failed for email: %s, user already exists", req.Email)
 			return nil, err
 		}
 		logger.Infof("Register.Create fail, email: %s, error: %s", req.Email, err)
-		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (s *UserService) GetUserByID(ctx *gin.Context, id string) (*model.User, error) {
-	apmTx := apm.TransactionFromContext(ctx.Request.Context())
-	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
-	rootSpan := apmTx.StartSpan("*UserService.GetUserByID", "service", nil)
-	defer rootSpan.End()
-
-	user, err := s.repo.GetUserByID(ctx, id)
-	if err != nil {
-		logger.Infof("GetUserByID fail, id: %s, error: %s", id, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 		return nil, err
 	}
@@ -119,22 +99,30 @@ func (s *UserService) GetUserByID(ctx *gin.Context, id string) (*model.User, err
 	return user, nil
 }
 
-func (s *UserService) RefreshToken(ctx *gin.Context, userID string) (string, error) {
+func (s *UserService) GetUserByID(ctx *gin.Context, userID string) (*model.User, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
 	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
-	rootSpan := apmTx.StartSpan("*UserService.RefreshToken", "service", nil)
+	rootSpan := apmTx.StartSpan("*UserService.GetUserByID", "service", nil)
 	defer rootSpan.End()
 
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
-		logger.Infof("RefreshToken.GetUserByID fail, id: %s, error: %s", userID, err)
+		logger.Infof("GetUserByID fail, userID: %s, error: %s", userID, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
-		return "", err
+		return nil, err
 	}
 
+	return user, nil
+}
+
+func (s *UserService) RefreshToken(ctx *gin.Context, userID string, userEmail string) (string, error) {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	rootSpan := apmTx.StartSpan("*UserService.RefreshToken", "service", nil)
+	defer rootSpan.End()
+
 	tokenData := map[string]interface{}{
-		"id":    user.ID,
-		"email": user.Email,
+		"id":    userID,
+		"email": userEmail,
 	}
 	accessToken := jwt.GenerateAccessToken(tokenData, jwt.LoginTokenType)
 	return accessToken, nil
@@ -190,7 +178,6 @@ func (s *UserService) SendPasswordResetEmail(ctx *gin.Context, req *dto.ForgotPa
 	user, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) { // user not found
-			logger.Infof("SendPasswordResetEmail failed for email: %s, user with email not found", req.Email)
 			return "", err
 		}
 
@@ -203,29 +190,18 @@ func (s *UserService) SendPasswordResetEmail(ctx *gin.Context, req *dto.ForgotPa
 		"id":    user.ID,
 		"email": user.Email,
 	}
-	accessToken := jwt.GenerateAccessToken(tokenData, jwt.ForgotPasswordTokenType)
+	accessToken := jwt.GenerateAccessToken(tokenData, jwt.ResetPasswordTokenType)
 	return accessToken, nil
 }
 
-func (s *UserService) ResetPassword(c *gin.Context, userID string, req *dto.ResetPasswordReq) error {
-	if err := s.validator.ValidateStruct(req); err != nil {
-		return err
-	}
-
-	apmTx := apm.TransactionFromContext(c.Request.Context())
-	traceContextFields := apmzap.TraceContext(c.Request.Context())
+func (s *UserService) ResetPassword(ctx *gin.Context, userID string, password string) error {
+	apmTx := apm.TransactionFromContext(ctx.Request.Context())
+	traceContextFields := apmzap.TraceContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*UserService.ResetPassword", "service", nil)
 	defer rootSpan.End()
 
-	user, err := s.repo.GetUserByID(c, userID)
-	if err != nil {
-		logger.Infof("ResetPassword.GetUserByID fail, userID: %s, error: %s", userID, err)
-		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
-		return err
-	}
-
-	user.HashedPassword = utils.HashAndSalt([]byte(req.Password))
-	err = s.repo.Update(c, user)
+	hashedPassword := utils.HashAndSalt([]byte(password))
+	err := s.repo.UpdatePassword(ctx, userID, hashedPassword)
 	if err != nil {
 		logger.Infof("ResetPassword.Update fail, userID: %s, error: %s", userID, err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
