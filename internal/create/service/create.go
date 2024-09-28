@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.elastic.co/apm/module/apmzap/v2"
 	"go.elastic.co/apm/v2"
@@ -45,7 +47,14 @@ func (s *CreateService) Create(ctx *gin.Context, id string, req *dto.CreateReq) 
 
 	var url model.URL
 	utils.Copy(&url, &req)
-	url.PopulateValues()
+	url.CreatedAt = time.Now()
+	if url.ExpiresAt.IsZero() {
+		url.ExpiresAt = url.CreatedAt.AddDate(
+			config.GetConfig().ExpirationInYears,
+			0,
+			0,
+		)
+	}
 
 	idGenSpan := apmTx.StartSpan("utils.IdGenerator", "utils", nil)
 	url.ShortID = utils.IDGenerator(config.GetConfig().ShortIDLength.Default)

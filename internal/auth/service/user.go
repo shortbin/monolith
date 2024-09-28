@@ -138,6 +138,10 @@ func (s *UserService) ChangePassword(ctx *gin.Context, userID string, req *dto.C
 	rootSpan := apmTx.StartSpan("*UserService.ChangePassword", "service", nil)
 	defer rootSpan.End()
 
+	if req.Password == req.NewPassword {
+		return errors.New("new password cannot be the same as the old password")
+	}
+
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		logger.Infof("ChangePassword.GetUserByID fail, userID: %s, error: %s", userID, err)
@@ -147,10 +151,6 @@ func (s *UserService) ChangePassword(ctx *gin.Context, userID string, req *dto.C
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(req.Password)); err != nil {
 		return errors.New("wrong password")
-	}
-
-	if req.Password == req.NewPassword {
-		return errors.New("new password cannot be the same as the old password")
 	}
 
 	user.HashedPassword = utils.HashAndSalt([]byte(req.NewPassword))
