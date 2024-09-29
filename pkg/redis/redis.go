@@ -85,15 +85,3 @@ func (r *redis) Set(key string, value interface{}, expiryTime time.Duration) err
 
 	return nil
 }
-
-func (r *redis) Remove(keys ...string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout*time.Second)
-	defer cancel()
-
-	err := r.cmd.Del(ctx, keys...).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
