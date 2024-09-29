@@ -1,8 +1,10 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
+	"time"
+
+	"github.com/spf13/viper"
 )
 
 const ProductionEnv = "production"
@@ -15,6 +17,7 @@ type Config struct {
 	ShortIDLength     ShortIDLimit `mapstructure:"short_id_length"`
 	ExpirationInYears int          `mapstructure:"expiration_in_years"`
 	Kafka             Kafka        `mapstructure:"kafka"`
+	Redis             Redis        `mapstructure:"redis"`
 	EnablePprof       bool         `mapstructure:"enable_pprof"`
 }
 
@@ -27,6 +30,13 @@ type ShortIDLimit struct {
 type Kafka struct {
 	Broker string `mapstructure:"broker"`
 	Topic  string `mapstructure:"topic"`
+}
+
+type Redis struct {
+	Address  string        `mapstructure:"address"`
+	Password string        `mapstructure:"password"`
+	Database int           `mapstructure:"database"`
+	TTL      time.Duration `mapstructure:"ttl"`
 }
 
 var cfg Config
