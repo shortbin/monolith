@@ -10,14 +10,15 @@ import (
 	"shortbin/pkg/logger"
 )
 
-const Timeout = 1
+const (
+	ContextTimeout     = 1
+	InitContextTimeout = 5
+)
 
 // IRedis interface
 type IRedis interface {
-	IsConnected() bool
 	Get(key string, value interface{}) error
-	Set(key string, value interface{}) error
-	SetWithExpiration(key string, value interface{}, expiration time.Duration) error
+	Set(key string, value interface{}, expiryTime time.Duration) error
 }
 
 // Config redis
@@ -27,13 +28,15 @@ type Config struct {
 	Database int
 }
 
+const NilReturn = goredis.Nil
+
 type redis struct {
 	cmd goredis.Cmdable
 }
 
 // New Redis interface with config
 func New(config Config) IRedis {
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), InitContextTimeout*time.Second)
 	defer cancel()
 
 	redisClient := goredis.NewClient(&goredis.Options{
@@ -53,23 +56,8 @@ func New(config Config) IRedis {
 	}
 }
 
-func (r *redis) IsConnected() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout*time.Second)
-	defer cancel()
-
-	if r.cmd == nil {
-		return false
-	}
-
-	_, err := r.cmd.Ping(ctx).Result()
-	if err != nil {
-		return false
-	}
-	return true
-}
-
 func (r *redis) Get(key string, value interface{}) error {
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout*time.Second)
 	defer cancel()
 
 	strValue, err := r.cmd.Get(ctx, key).Result()
@@ -85,25 +73,12 @@ func (r *redis) Get(key string, value interface{}) error {
 	return nil
 }
 
-func (r *redis) SetWithExpiration(key string, value interface{}, expiration time.Duration) error {
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout*time.Second)
+func (r *redis) Set(key string, value interface{}, expiryTime time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout*time.Second)
 	defer cancel()
 
 	bData, _ := json.Marshal(value)
-	err := r.cmd.Set(ctx, key, bData, expiration).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *redis) Set(key string, value interface{}) error {
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout*time.Second)
-	defer cancel()
-
-	bData, _ := json.Marshal(value)
-	err := r.cmd.Set(ctx, key, bData, 0).Err()
+	err := r.cmd.Set(ctx, key, bData, expiryTime).Err()
 	if err != nil {
 		return err
 	}
@@ -112,7 +87,7 @@ func (r *redis) Set(key string, value interface{}) error {
 }
 
 func (r *redis) Remove(keys ...string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout*time.Second)
 	defer cancel()
 
 	err := r.cmd.Del(ctx, keys...).Err()
