@@ -82,7 +82,6 @@ func produce(h *RetrieveHandler, c *gin.Context, shortID string) {
 		logger.Infof("failed to produce message to Kafka: %v", err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 	}
-	return
 }
 
 func cache(h *RetrieveHandler, c *gin.Context, shortID, longURL string) {
@@ -91,5 +90,4 @@ func cache(h *RetrieveHandler, c *gin.Context, shortID, longURL string) {
 		logger.Infof("failed to set cache: %v", err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 	}
-	return
 }
