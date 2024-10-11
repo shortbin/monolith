@@ -69,8 +69,8 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 		}
 		go cache(h, c, shortID, userID, longURL)
 	} else {
-		split := strings.Split(value, ";")
-		longURL, userID = split[0], split[1]
+		split := strings.SplitN(value, ";", 2)
+		userID, longURL = split[0], split[1]
 	}
 	go produce(h, c, shortID, userID, longURL)
 	c.Redirect(http.StatusMovedPermanently, longURL)
@@ -98,7 +98,7 @@ func produce(h *RetrieveHandler, c *gin.Context, shortID string, shortCreatedBy 
 
 func cache(h *RetrieveHandler, c *gin.Context, shortID string, userID string, longURL string) {
 	traceContextFields := apmzap.TraceContext(c.Request.Context())
-	if err := h.redis.Set(shortID, longURL+";"+userID, config.GetConfig().Redis.TTL*time.Minute); err != nil {
+	if err := h.redis.Set(shortID, userID+";"+longURL, config.GetConfig().Redis.TTL*time.Minute); err != nil {
 		logger.Infof("failed to set cache: %v", err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 	}
