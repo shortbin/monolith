@@ -44,7 +44,7 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 	traceContextFields := apmzap.TraceContext(c.Request.Context())
 
 	var longURL string // empty ""
-	if err := h.redis.Get(shortID, &longURL); !errors.Is(err, redis.NilReturn) && err != nil {
+	if err := h.redis.GetByRefreshingExpiry(shortID, &longURL); !errors.Is(err, redis.NilReturn) && err != nil {
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 	}
 
