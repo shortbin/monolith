@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,14 +44,17 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 	shortID := c.Param("short_id")
 	traceContextFields := apmzap.TraceContext(c.Request.Context())
 
-	var longURL string // empty ""
-	if err := h.redis.GetByRefreshingExpiry(shortID, &longURL); !errors.Is(err, redis.NilReturn) && err != nil {
+	var value string // inits to ""
+	if err := h.redis.GetByRefreshingExpiry(shortID, &value); !errors.Is(err, redis.NilReturn) && err != nil {
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 	}
 
-	if longURL == "" {
+	var longURL string
+	var userID string
+	if value == "" {
 		var err error
-		longURL, err = h.service.Retrieve(c, shortID)
+		var subUserID *string
+		longURL, subUserID, err = h.service.Retrieve(c, shortID)
 		if err != nil {
 			if e := err.Error(); e == response.IDNotFound || e == response.IDLengthNotInRange {
 				response.Error(c, http.StatusNotFound, err, response.IDNotFound)
@@ -60,20 +64,28 @@ func (h *RetrieveHandler) Retrieve(c *gin.Context) {
 			}
 			return
 		}
-		go cache(h, c, shortID, longURL)
+		if userID = "-1"; subUserID != nil {
+			userID = *subUserID
+		}
+		go cache(h, c, shortID, userID, longURL)
+	} else {
+		split := strings.Split(value, ";")
+		longURL, userID = split[0], split[1]
 	}
-	go produce(h, c, shortID)
+	go produce(h, c, shortID, userID, longURL)
 	c.Redirect(http.StatusMovedPermanently, longURL)
 }
 
-func produce(h *RetrieveHandler, c *gin.Context, shortID string) {
+func produce(h *RetrieveHandler, c *gin.Context, shortID string, shortCreatedBy string, longURL string) {
 	value := map[string]string{
-		"short_id":        shortID,
-		"ip_address":      c.ClientIP(),
-		"user_agent":      c.GetHeader("User-Agent"),
-		"referer":         c.GetHeader("Referer"),
-		"x_forwarded_for": c.GetHeader("X-Forwarded-For"),
-		"request_host":    c.Request.Host,
+		"short_id":         shortID,
+		"short_created_by": shortCreatedBy,
+		"long_url":         longURL,
+		"ip_address":       c.ClientIP(),
+		"user_agent":       c.GetHeader("User-Agent"),
+		"referer":          c.GetHeader("Referer"),
+		"x_forwarded_for":  c.GetHeader("X-Forwarded-For"),
+		"request_host":     c.Request.Host,
 	}
 
 	err := h.kafkaProducer.Produce(c, shortID, value)
@@ -84,9 +96,9 @@ func produce(h *RetrieveHandler, c *gin.Context, shortID string) {
 	}
 }
 
-func cache(h *RetrieveHandler, c *gin.Context, shortID, longURL string) {
+func cache(h *RetrieveHandler, c *gin.Context, shortID string, userID string, longURL string) {
 	traceContextFields := apmzap.TraceContext(c.Request.Context())
-	if err := h.redis.Set(shortID, longURL, config.GetConfig().Redis.TTL*time.Minute); err != nil {
+	if err := h.redis.Set(shortID, longURL+";"+userID, config.GetConfig().Redis.TTL*time.Minute); err != nil {
 		logger.Infof("failed to set cache: %v", err)
 		logger.ApmLogger.With(traceContextFields...).Error(err.Error())
 	}

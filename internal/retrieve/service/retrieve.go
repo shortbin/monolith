@@ -13,7 +13,7 @@ import (
 
 //go:generate mockery --name=IRetrieveService
 type IRetrieveService interface {
-	Retrieve(ctx *gin.Context, shortID string) (string, error)
+	Retrieve(ctx *gin.Context, shortID string) (string, *string, error)
 }
 
 type RetrieveService struct {
@@ -27,7 +27,7 @@ func NewRetrieveService(
 	}
 }
 
-func (s *RetrieveService) Retrieve(ctx *gin.Context, shortID string) (string, error) {
+func (s *RetrieveService) Retrieve(ctx *gin.Context, shortID string) (string, *string, error) {
 	apmTx := apm.TransactionFromContext(ctx.Request.Context())
 	rootSpan := apmTx.StartSpan("*RetrieveService.Retrieve", "service", nil)
 	defer rootSpan.End()
@@ -35,14 +35,13 @@ func (s *RetrieveService) Retrieve(ctx *gin.Context, shortID string) (string, er
 	cfg := config.GetConfig()
 
 	if length := len(shortID); length < cfg.ShortIDLength.Min || cfg.ShortIDLength.Max < length {
-		return "", errors.New(response.IDLengthNotInRange)
+		return "", nil, errors.New(response.IDLengthNotInRange)
 	}
 
 	url, err := s.repo.GetURLByID(ctx, shortID)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	longURL := url.LongURL
-	return longURL, nil
+	return url.LongURL, url.UserID, nil
 }
