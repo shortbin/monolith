@@ -21,8 +21,7 @@ type Config struct {
 
 func NewKafkaProducer(cfg Config) IKafkaProducer {
 	w := &kafka.Writer{
-		Addr: kafka.TCP(cfg.Broker),
-		//Topic:    cfg.Topic,
+		Addr:     kafka.TCP(cfg.Broker),
 		Balancer: &kafka.LeastBytes{},
 	}
 
