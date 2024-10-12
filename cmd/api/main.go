@@ -21,7 +21,6 @@ func main() {
 
 	kp := kafka.NewKafkaProducer(kafka.Config{
 		Broker: cfg.Kafka.Broker,
-		Topic:  cfg.Kafka.Topic,
 	})
 
 	cache := redis.New(redis.Config{

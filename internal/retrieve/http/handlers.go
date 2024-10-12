@@ -88,7 +88,12 @@ func produce(h *RetrieveHandler, c *gin.Context, shortID string, shortCreatedBy 
 		"request_host":     c.Request.Host,
 	}
 
-	err := h.kafkaProducer.Produce(c, shortID, value)
+	var err error
+	if shortCreatedBy == "-1" {
+		err = h.kafkaProducer.Produce(c, config.GetConfig().Kafka.PublicClicksTopic, shortID, value)
+	} else {
+		err = h.kafkaProducer.Produce(c, config.GetConfig().Kafka.ClicksTopic, shortID, value)
+	}
 	traceContextFields := apmzap.TraceContext(c.Request.Context())
 	if err != nil {
 		logger.Infof("failed to produce message to Kafka: %v", err)
