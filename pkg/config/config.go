@@ -28,8 +28,9 @@ type ShortIDLimit struct {
 }
 
 type Kafka struct {
-	Broker string `mapstructure:"broker"`
-	Topic  string `mapstructure:"topic"`
+	Broker            string `mapstructure:"broker"`
+	ClicksTopic       string `mapstructure:"clicks_topic"`
+	PublicClicksTopic string `mapstructure:"public_clicks_topic"`
 }
 
 type Redis struct {
